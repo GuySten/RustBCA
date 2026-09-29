@@ -229,6 +229,7 @@ fn test_distributions() {
         root_finder: vec![vec![Rootfinder::NEWTON{max_iterations: 100, tolerance: 1E-3}]],
         track_displacements: false,
         track_energy_losses: true,
+        track_path_lengths: false,
         seed: 0,
         energy_min: 0.0,
         energy_max: 10.0,
@@ -884,6 +885,7 @@ fn test_momentum_conservation() {
                             root_finder: vec![vec![root_finder]],
                             track_displacements: false,
                             track_energy_losses: false,
+                            track_path_lengths: false,
                             seed: 0,
                         };
 
@@ -906,6 +908,7 @@ fn test_momentum_conservation() {
                             root_finder: vec![vec![root_finder]],
                             track_displacements: false,
                             track_energy_losses: false,
+                            track_path_lengths: false,
                             seed: 0,
                             energy_min: 0.0,
                             energy_max: 10.0,
@@ -1090,6 +1093,16 @@ fn test_particle_advance() {
 }
 
 #[test]
+fn test_path_length_accumulates() {
+    let mut particle = particle::Particle::new(1., 1., 1., 1., 1., 0., 0., 0., 0.,
+        1., 0., 0., false, false, 0);
+    particle.advance(1.0, 0.25);
+    particle.advance(2.0, 0.5);
+    // Distances: (1.0 - 0.25) + (2.0 + 0.25 - 0.5)
+    assert!(approx_eq!(f64, particle.path_length, 2.5, epsilon=1E-12));
+}
+
+#[test]
 fn test_quadrature() {
     let Za = 1.;
     let Zb = 13.;
@@ -1118,6 +1131,7 @@ fn test_quadrature() {
         root_finder: vec![vec![Rootfinder::NEWTON{max_iterations: 100, tolerance: 1E-14}]],
         track_displacements: false,
         track_energy_losses: false,
+        track_path_lengths: false,
         seed: 0,
     };
 
@@ -1140,6 +1154,7 @@ fn test_quadrature() {
         root_finder: vec![vec![Rootfinder::NEWTON{max_iterations: 100, tolerance: 1E-14}]],
         track_displacements: false,
         track_energy_losses: false,
+        track_path_lengths: false,
         seed: 0,
         energy_min: 0.0,
         energy_max: 10.0,

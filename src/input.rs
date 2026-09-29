@@ -249,6 +249,9 @@ pub struct Options {
     pub track_displacements: bool,
     #[serde(default = "default_false")]
     pub track_energy_losses: bool,
+    /// Write the total path length of every particle to path_length.output
+    #[serde(default = "default_false")]
+    pub track_path_lengths: bool,
     #[serde(default = "default_seed")]
     pub seed: i32
 }
@@ -274,6 +277,7 @@ impl Options {
             num_chunks: 1,
             track_displacements: false,
             track_energy_losses: false,
+            track_path_lengths: false,
             seed: default_seed(),
         }
     }
@@ -315,6 +319,9 @@ pub struct Options {
     pub track_displacements: bool,
     #[serde(default = "default_false")]
     pub track_energy_losses: bool,
+    /// Write the total path length of every particle to path_length.output
+    #[serde(default = "default_false")]
+    pub track_path_lengths: bool,
     pub energy_min: f64,
     pub energy_max: f64,
     pub energy_num: usize,
@@ -355,6 +362,7 @@ impl Options {
             num_chunks: 1,
             track_displacements: false,
             track_energy_losses: false,
+            track_path_lengths: false,
             energy_min: 0.0,
             energy_max: 0.0,
             energy_num: 0,
