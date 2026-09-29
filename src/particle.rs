@@ -56,6 +56,8 @@ pub struct Particle {
     pub pos_origin: Vector,
     pub energy_origin: f64,
     pub asymptotic_deflection: f64,
+    /// Total distance traveled along the trajectory
+    pub path_length: f64,
     pub stopped: bool,
     pub left: bool,
     pub incident: bool,
@@ -94,6 +96,7 @@ impl Particle {
             pos_origin: Vector::new(input.x, input.y, input.z),
             energy_origin: input.E,
             asymptotic_deflection: 0.,
+            path_length: 0.,
             stopped: false,
             left: false,
             incident: true,
@@ -128,6 +131,7 @@ impl Particle {
             pos_origin: Vector::new(x, y, z),
             energy_origin: E,
             asymptotic_deflection: 0.,
+            path_length: 0.,
             stopped: false,
             left: false,
             incident,
@@ -167,6 +171,7 @@ impl Particle {
             pos_origin: Vector::new(x, y, z),
             energy_origin: E_eV,
             asymptotic_deflection: 0.,
+            path_length: 0.,
             stopped: false,
             left: false,
             incident: true,
@@ -243,6 +248,7 @@ impl Particle {
         self.pos.y += self.dir_old.y*distance_traveled;
         self.pos.z += self.dir_old.z*distance_traveled;
         self.asymptotic_deflection = asymptotic_deflection;
+        self.path_length += distance_traveled.abs();
 
         //Update previous direction
         self.dir_old.x = self.dir.x;

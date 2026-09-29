@@ -163,6 +163,7 @@ pub struct OutputListStreams {
     trajectory_data_stream: BufWriter<File>,
     displacements_file_stream: BufWriter<File>,
     energy_loss_file_stream: BufWriter<File>,
+    path_length_file_stream: BufWriter<File>,
 }
 
 /// Simulation-wide summary output tracker.
@@ -323,6 +324,15 @@ pub fn open_output_lists(options: &Options) -> OutputListStreams {
         .unwrap();
     let energy_loss_file_stream = BufWriter::with_capacity(options.write_buffer_size, energy_loss_file);
 
+    let path_length_file = OpenOptions::new()
+        .write(true)
+        .create(true)
+        .truncate(true)
+        .open(format!("{}{}", options.name, "path_length.output"))
+        .context("Could not open output file.")
+        .unwrap();
+    let path_length_file_stream = BufWriter::with_capacity(options.write_buffer_size, path_length_file);
+
     OutputListStreams {
         reflected_file_stream,
         sputtered_file_stream,
@@ -331,6 +341,7 @@ pub fn open_output_lists(options: &Options) -> OutputListStreams {
         trajectory_data_stream,
         displacements_file_stream,
         energy_loss_file_stream,
+        path_length_file_stream,
     }
 }
 
@@ -407,6 +418,17 @@ pub fn output_lists(output_list_streams: &mut OutputListStreams, particle: parti
             ).unwrap_or_else(|_| panic!("Output error: could not write to {}energy_loss.output.", options.name));
         }
     }
+
+    //Path length output: mass, Z, initial energy, path length, final position, incident, left
+    if options.track_path_lengths {
+        writeln!(
+            output_list_streams.path_length_file_stream, "{},{},{},{},{},{},{},{},{}",
+            particle.m/mass_unit, particle.Z, particle.energy_origin/energy_unit,
+            particle.path_length/length_unit,
+            particle.pos.x/length_unit, particle.pos.y/length_unit, particle.pos.z/length_unit,
+            particle.incident as u8, particle.left as u8,
+        ).unwrap_or_else(|_| panic!("Output error: could not write to {}path_length.output.", options.name));
+    }
 }
 
 /// Flush output list streams
@@ -417,4 +439,5 @@ pub fn output_list_flush(output_list_streams: &mut OutputListStreams) {
     output_list_streams.sputtered_file_stream.flush().unwrap();
     output_list_streams.trajectory_data_stream.flush().unwrap();
     output_list_streams.trajectory_file_stream.flush().unwrap();
+    output_list_streams.path_length_file_stream.flush().unwrap();
 }
