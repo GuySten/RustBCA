@@ -165,7 +165,7 @@ impl Particle {
             pos_old: Vector::new(x, y, z),
             dir_old: Vector::new(dirx/dir_mag, diry/dir_mag, dirz/dir_mag),
             pos_origin: Vector::new(x, y, z),
-            energy_origin: E_eV,
+            energy_origin: E_eV*EV,
             asymptotic_deflection: 0.,
             stopped: false,
             left: false,
