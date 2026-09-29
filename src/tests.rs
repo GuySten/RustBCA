@@ -1090,6 +1090,16 @@ fn test_particle_advance() {
 }
 
 #[test]
+fn test_effective_num_chunks() {
+    // More chunks than particles is clamped so that no chunk is empty
+    assert_eq!(physics::effective_num_chunks(2, 4), 2);
+    assert_eq!(physics::effective_num_chunks(1, 100), 1);
+    // Otherwise the requested number is kept
+    assert_eq!(physics::effective_num_chunks(1000, 4), 4);
+    assert_eq!(physics::effective_num_chunks(4, 4), 4);
+}
+
+#[test]
 fn test_quadrature() {
     let Za = 1.;
     let Zb = 13.;
