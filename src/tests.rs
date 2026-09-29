@@ -1090,6 +1090,18 @@ fn test_particle_advance() {
 }
 
 #[test]
+fn test_trajectory_records_final_collision() {
+    // The collision that takes a particle below its cutoff energy must be recorded;
+    // otherwise the trajectory skips a corner before the stopping point
+    let mut particle = particle::Particle::new(1., 1., 0.5, 1., 0., 0., 0., 0., 0.,
+        1., 0., 0., true, true, 0);
+    assert!(particle.E < particle.Ec);
+    particle.advance(1.0, 0.);
+    assert_eq!(particle.trajectory.len(), 1);
+    assert_eq!(particle.trajectory[0].x, 0.);
+}
+
+#[test]
 fn test_quadrature() {
     let Za = 1.;
     let Zb = 13.;

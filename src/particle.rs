@@ -226,9 +226,9 @@ impl Particle {
     /// Push particle in space according to previous direction and return the distance traveled.
     pub fn advance(&mut self, mfp: f64, asymptotic_deflection: f64) -> f64 {
 
-        if self.E > self.Ec {
-            self.update_trajectory_tracker();
-        }
+        //Record the position of the collision that precedes this free flight, including the
+        //final collision that takes the particle below its cutoff energy
+        self.update_trajectory_tracker();
 
         //Update previous position
         self.pos_old.x = self.pos.x;
