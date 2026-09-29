@@ -236,13 +236,23 @@ impl Particle {
         self.pos_old.z = self.pos.z;
 
         //In order to keep average denisty constant, must add back previous asymptotic deflection
-        let distance_traveled = mfp + self.asymptotic_deflection - asymptotic_deflection;
+        let mut distance_traveled = mfp + self.asymptotic_deflection - asymptotic_deflection;
+
+        //A free flight shorter than the asymptotic deflection would move the particle backwards.
+        //This happens on the first step, whose flight path is a random fraction of the mean free
+        //path. Stay in place instead, and carry the shortfall into the next step so that the
+        //total distance traveled over consecutive steps is unchanged.
+        let mut carried_deflection = asymptotic_deflection;
+        if distance_traveled < 0. {
+            carried_deflection += distance_traveled;
+            distance_traveled = 0.;
+        }
 
         //dir has been updated, so use previous direction to advance in space
         self.pos.x += self.dir_old.x*distance_traveled;
         self.pos.y += self.dir_old.y*distance_traveled;
         self.pos.z += self.dir_old.z*distance_traveled;
-        self.asymptotic_deflection = asymptotic_deflection;
+        self.asymptotic_deflection = carried_deflection;
 
         //Update previous direction
         self.dir_old.x = self.dir.x;
