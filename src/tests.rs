@@ -1090,6 +1090,25 @@ fn test_particle_advance() {
 }
 
 #[test]
+fn test_particle_advance_never_backwards() {
+    // A first free flight shorter than the asymptotic deflection must not move
+    // the particle backwards; the shortfall is carried into the next step
+    let mut particle = particle::Particle::new(1., 1., 1., 1., 1., 0., 0., 0., 0.,
+        1., 0., 0., false, false, 0);
+
+    let first = particle.advance(0.1, 0.5);
+    assert_eq!(first, 0.);
+    assert_eq!(particle.pos.x, 0.);
+
+    let second = particle.advance(1.0, 0.);
+    assert!(approx_eq!(f64, second, 1.1, epsilon=1E-12));
+    assert!(approx_eq!(f64, particle.pos.x, 1.1, epsilon=1E-12));
+
+    // Total distance equals that of the unclamped steps: (0.1 - 0.5) + (1.0 + 0.5)
+    assert!(approx_eq!(f64, first + second, 1.1, epsilon=1E-12));
+}
+
+#[test]
 fn test_quadrature() {
     let Za = 1.;
     let Zb = 13.;
