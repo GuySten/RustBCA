@@ -1090,6 +1090,70 @@ fn test_particle_advance() {
 }
 
 #[test]
+fn test_sampled_direction_components_are_dimensionless() {
+    // A sampled direction cosine must not be scaled by the length unit:
+    // x ~ U(0.5, 0.6) with y = 0.8 should give directions near (0.55, 0.8, 0)
+    let input_file = std::env::temp_dir().join("rustbca_test_direction_units.toml");
+    std::fs::write(&input_file, r#"
+[options]
+name = "test_direction_units_"
+track_recoils = false
+seed = 1
+# Required with the distributions feature
+energy_min = 0.0
+energy_max = 1000.0
+energy_num = 10
+angle_min = 0.0
+angle_max = 90.0
+angle_num = 10
+x_min = 0.0
+y_min = -10.0
+z_min = -10.0
+x_max = 10.0
+y_max = 10.0
+z_max = 10.0
+x_num = 10
+y_num = 10
+z_num = 10
+
+[particle_parameters]
+length_unit = "ANGSTROM"
+energy_unit = "EV"
+mass_unit = "AMU"
+N = [ 100 ]
+m = [ 4.0026 ]
+Z = [ 2 ]
+E = [ 1000.0 ]
+Ec = [ 1.0 ]
+Es = [ 0.0 ]
+pos = [ [ 0.0, 0.0, 0.0 ] ]
+dir = [ [ {min = 0.5, max = 0.6}, 0.8, 0.0 ] ]
+
+[geometry_input]
+length_unit = "ANGSTROM"
+densities = [ 0.059 ]
+electronic_stopping_correction_factor = 1.0
+
+[material_parameters]
+energy_unit = "EV"
+mass_unit = "AMU"
+Eb = [ 0.0 ]
+Es = [ 0.0 ]
+Ec = [ 1.0 ]
+Z = [ 79 ]
+m = [ 196.97 ]
+"#).unwrap();
+
+    let (particles, _, _, _) = input::input::<geometry::Mesh0D>(
+        input_file.to_str().unwrap().to_string());
+    assert_eq!(particles.len(), 100);
+    for p in &particles {
+        assert!(p.ux >= 0.5 && p.ux <= 0.6);
+        assert_eq!(p.uy, 0.8);
+    }
+}
+
+#[test]
 fn test_quadrature() {
     let Za = 1.;
     let Zb = 13.;
