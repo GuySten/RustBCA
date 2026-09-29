@@ -81,10 +81,22 @@ pub fn process_finished_particles_to_arrays(finished_particles: Vec<particle::Pa
     finished_particles_container
 }
 
+/// Number of chunks to use: `requested`, but never more than the number of
+/// particles, so that every chunk contains at least one particle.
+pub fn effective_num_chunks(total_count: u64, requested: u64) -> u64 {
+    requested.min(total_count).max(1)
+}
+
 pub fn physics_loop<T: Geometry + Sync>(particle_input_array: Vec<particle::ParticleInput>, material: material::Material<T>, options: Options, output_units: OutputUnits) {
 
         let total_count: u64 = particle_input_array.len() as u64;
-        assert!(total_count/options.num_chunks > 0, "Input error: chunk size == 0 - reduce num_chunks or increase particle count.");
+        assert!(total_count > 0, "Input error: no particles to simulate.");
+
+        let num_chunks = effective_num_chunks(total_count, options.num_chunks);
+        if num_chunks < options.num_chunks {
+            println!("Warning: num_chunks = {} exceeds the number of particles; using {} chunks.",
+                options.num_chunks, num_chunks);
+        }
 
         #[cfg(not(feature = "no_list_output"))]
         let mut output_list_streams = output::open_output_lists(&options);
@@ -101,7 +113,7 @@ pub fn physics_loop<T: Geometry + Sync>(particle_input_array: Vec<particle::Part
             .progress_chars("#>-"));
 
         //Main loop
-        let chunk_size = (total_count/options.num_chunks) as usize;
+        let chunk_size = (total_count/num_chunks) as usize;
         for (chunk_index, particle_input_chunk) in particle_input_array.chunks(chunk_size).enumerate() {
 
             let mut finished_particles: Vec<particle::Particle> = Vec::new();
