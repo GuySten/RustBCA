@@ -1090,6 +1090,14 @@ fn test_particle_advance() {
 }
 
 #[test]
+fn test_default_incident_energy_origin() {
+    // energy_origin must be in the same (SI) units as E
+    let particle = particle::Particle::default_incident(4.0, 2.0, 1000., 1., 0., 0., 1., 0., 0.);
+    assert_eq!(particle.E, 1000.*EV);
+    assert_eq!(particle.energy_origin, particle.E);
+}
+
+#[test]
 fn test_quadrature() {
     let Za = 1.;
     let Zb = 13.;
