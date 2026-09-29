@@ -20,6 +20,24 @@ pub enum Distributions {
     POINT(f64),
 }
 
+/// Direction of an input particle: either three direction-cosine components (each a fixed
+/// value or a distribution), e.g. `[1.0, 0.0, 0.0]`, or a named distribution of directions,
+/// e.g. `"ISOTROPIC"`.
+#[derive(Deserialize, PartialEq, Clone, Copy)]
+#[serde(untagged)]
+pub enum DirectionInput {
+    COMPONENTS(Distributions, Distributions, Distributions),
+    SAMPLED(DirectionDistribution),
+}
+
+/// Named distributions of input particle directions.
+#[derive(Deserialize, PartialEq, Clone, Copy)]
+pub enum DirectionDistribution {
+    /// Directions uniformly distributed over the unit sphere, e.g. for particles born inside
+    /// the target by nuclear reactions or radioactive decay.
+    ISOTROPIC,
+}
+
 #[derive(Deserialize)]
 pub enum GeometryType {
     MESH0D,

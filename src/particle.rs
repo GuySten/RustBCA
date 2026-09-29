@@ -16,7 +16,7 @@ pub struct ParticleParameters {
     pub Ec: Vec<f64>,
     pub Es: Vec<f64>,
     pub pos: Vec<(Distributions, Distributions, Distributions)>,
-    pub dir: Vec<(Distributions, Distributions, Distributions)>,
+    pub dir: Vec<DirectionInput>,
     #[serde(default = "default_vec_zero")]
     pub interaction_index: Vec<usize>,
 }

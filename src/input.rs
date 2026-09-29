@@ -1,6 +1,15 @@
 use super::*;
 use rand::distr::{Uniform};
 use rand_distr::{Normal, Distribution};
+use rand::RngExt;
+
+/// Sample a direction uniformly distributed over the unit sphere.
+pub fn sample_isotropic_direction(rng: &mut ChaCha8Rng) -> (f64, f64, f64) {
+    let cosx: f64 = 2.*rng.random::<f64>() - 1.;
+    let phi: f64 = 2.*PI*rng.random::<f64>();
+    let sinx = (1. - cosx*cosx).max(0.).sqrt();
+    (cosx, sinx*phi.cos(), sinx*phi.sin())
+}
 
 pub trait InputFile: GeometryInput {
     fn new(string: &str) -> Self;
@@ -559,9 +568,30 @@ pub fn process_input_file<T: Geometry>(input: <T as Geometry>::InputFileFormat) 
             let Es = particle_parameters.Es[particle_index];
             let interaction_index = particle_parameters.interaction_index[particle_index];
             let (x, y, z) = particle_parameters.pos[particle_index];
-            let (cosx, cosy, cosz) = particle_parameters.dir[particle_index];
+            let dir = particle_parameters.dir[particle_index];
 
             for sub_particle_index in 0..N_ {
+
+                let (ux, uy, uz) = match dir {
+                    DirectionInput::COMPONENTS(cosx, cosy, cosz) => (
+                        match cosx {
+                            Distributions::NORMAL{mean, std} => {let normal = Normal::new(mean, std).unwrap(); normal.sample(&mut rng)*length_unit},
+                            Distributions::UNIFORM{min, max} => {let uniform = Uniform::new(min, max).unwrap();  uniform.sample(&mut rng)*length_unit},
+                            Distributions::POINT(ux) => ux
+                        },
+                        match cosy {
+                            Distributions::NORMAL{mean, std} => {let normal = Normal::new(mean, std).unwrap(); normal.sample(&mut rng)*length_unit},
+                            Distributions::UNIFORM{min, max} => {let uniform = Uniform::new(min, max).unwrap();  uniform.sample(&mut rng)*length_unit},
+                            Distributions::POINT(uy) => uy,
+                        },
+                        match cosz {
+                            Distributions::NORMAL{mean, std} => {let normal = Normal::new(mean, std).unwrap(); normal.sample(&mut rng)*length_unit},
+                            Distributions::UNIFORM{min, max} => {let uniform = Uniform::new(min, max).unwrap();  uniform.sample(&mut rng)*length_unit},
+                            Distributions::POINT(uz) => uz,
+                        },
+                    ),
+                    DirectionInput::SAMPLED(DirectionDistribution::ISOTROPIC) => sample_isotropic_direction(&mut rng),
+                };
 
                 //Add new particle to particle vector
                 particle_input.push(
@@ -590,21 +620,9 @@ pub fn process_input_file<T: Geometry>(input: <T as Geometry>::InputFileFormat) 
                             Distributions::UNIFORM{min, max} => {let uniform = Uniform::new(min, max).unwrap();  uniform.sample(&mut rng)*length_unit},
                             Distributions::POINT(z) => z*length_unit,
                         },
-                        ux: match cosx {
-                            Distributions::NORMAL{mean, std} => {let normal = Normal::new(mean, std).unwrap(); normal.sample(&mut rng)*length_unit},
-                            Distributions::UNIFORM{min, max} => {let uniform = Uniform::new(min, max).unwrap();  uniform.sample(&mut rng)*length_unit},
-                            Distributions::POINT(ux) => ux
-                        },
-                        uy: match cosy {
-                            Distributions::NORMAL{mean, std} => {let normal = Normal::new(mean, std).unwrap(); normal.sample(&mut rng)*length_unit},
-                            Distributions::UNIFORM{min, max} => {let uniform = Uniform::new(min, max).unwrap();  uniform.sample(&mut rng)*length_unit},
-                            Distributions::POINT(uy) => uy,
-                        },
-                        uz: match cosz {
-                            Distributions::NORMAL{mean, std} => {let normal = Normal::new(mean, std).unwrap(); normal.sample(&mut rng)*length_unit},
-                            Distributions::UNIFORM{min, max} => {let uniform = Uniform::new(min, max).unwrap();  uniform.sample(&mut rng)*length_unit},
-                            Distributions::POINT(uz) => uz,
-                        },
+                        ux,
+                        uy,
+                        uz,
                         interaction_index,
                         tag: 0,
                         weight: 1.0,

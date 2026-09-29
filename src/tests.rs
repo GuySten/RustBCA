@@ -1090,6 +1090,47 @@ fn test_particle_advance() {
 }
 
 #[test]
+fn test_direction_input() {
+    // Component and named directions can be mixed in one particle list
+    let parameters: particle::ParticleParameters = toml::from_str(r#"
+        length_unit = "ANGSTROM"
+        energy_unit = "EV"
+        mass_unit = "AMU"
+        N = [1, 1]
+        m = [4.0, 4.0]
+        Z = [2.0, 2.0]
+        E = [1000.0, 1000.0]
+        Ec = [1.0, 1.0]
+        Es = [0.0, 0.0]
+        pos = [[0.0, 0.0, 0.0], [10.0, 0.0, 0.0]]
+        dir = [[0.999, 0.001, 0.0], "ISOTROPIC"]
+    "#).unwrap();
+    assert!(matches!(parameters.dir[0], DirectionInput::COMPONENTS(..)));
+    assert!(parameters.dir[1] == DirectionInput::SAMPLED(DirectionDistribution::ISOTROPIC));
+}
+
+#[test]
+fn test_isotropic_directions() {
+    let mut rng = ChaCha8Rng::seed_from_u64(1);
+    let n = 200000;
+    let (mut sum_x, mut sum_xx, mut sum_y, mut sum_z) = (0., 0., 0., 0.);
+    for _ in 0..n {
+        let (ux, uy, uz) = input::sample_isotropic_direction(&mut rng);
+        assert!(approx_eq!(f64, ux*ux + uy*uy + uz*uz, 1.0, epsilon=1E-12));
+        sum_x += ux;
+        sum_y += uy;
+        sum_z += uz;
+        sum_xx += ux*ux;
+    }
+    let n = n as f64;
+    // Isotropy: zero mean in every direction and <ux^2> = 1/3
+    assert!((sum_x/n).abs() < 0.01);
+    assert!((sum_y/n).abs() < 0.01);
+    assert!((sum_z/n).abs() < 0.01);
+    assert!((sum_xx/n - 1./3.).abs() < 0.01);
+}
+
+#[test]
 fn test_quadrature() {
     let Za = 1.;
     let Zb = 13.;
